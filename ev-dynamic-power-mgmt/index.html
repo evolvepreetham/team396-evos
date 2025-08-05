@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EVISION - EV Charging Power Management & Analytics Platform</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header Section -->
+        <header class="main-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <div class="logo">
+                        <span class="logo-icon">⚡</span>
+                        <span class="logo-text">EVISION</span>
+                    </div>
+                    <div class="header-info">
+                        <h1>Dynamic Power Management System</h1>
+                        <p class="header-subtitle">4-Slot EV Charging Station with Real-time Analytics</p>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="system-status">
+                        <div class="status-indicator online" id="system-status-indicator"></div>
+                        <div class="status-info">
+                            <span class="status-label">System Status</span>
+                            <span class="status-value" id="system-status-text">Online</span>
+                        </div>
+                    </div>
+                    <div class="database-status">
+                        <div class="status-indicator" id="db-status-indicator"></div>
+                        <div class="status-info">
+                            <span class="status-label">Database</span>
+                            <span class="status-value" id="db-status-text">Disconnected</span>
+                        </div>
+                    </div>
+                    <div class="last-update">
+                        <span class="update-label">Last Update</span>
+                        <span class="update-time" id="last-update">--:--:--</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Alert System -->
+        <div id="alert-container" class="alert-container"></div>
+
+        <!-- Navigation Tabs -->
+        <nav class="main-navigation">
+            <button class="nav-tab active" data-tab="dashboard">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Live Dashboard</span>
+            </button>
+            <button class="nav-tab" data-tab="control">
+                <span class="nav-icon">⚡</span>
+                <span class="nav-text">Power Control</span>
+            </button>
+            <button class="nav-tab" data-tab="analytics">
+                <span class="nav-icon">📊</span>
+                <span class="nav-text">Analytics</span>
+            </button>
+            <button class="nav-tab" data-tab="reports">
+                <span class="nav-icon">📈</span>
+                <span class="nav-text">Reports</span>
+            </button>
+        </nav>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="tab-content active">
+            <div class="dashboard-grid">
+                <!-- System Overview Cards -->
+                <div class="overview-cards">
+                    <div class="metric-card primary">
+                        <div class="card-icon">⚡</div>
+                        <div class="card-content">
+                            <h3>Grid Power</h3>
+                            <div class="metric-value">
+                                <span id="dashboard-grid-power">20</span>
+                                <span class="unit">kW</span>
+                            </div>
+                            <div class="metric-status" id="dashboard-grid-status">Normal</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card secondary">
+                        <div class="card-icon">🔌</div>
+                        <div class="card-content">
+                            <h3>Active Slots</h3>
+                            <div class="metric-value">
+                                <span id="dashboard-active-slots">0</span>
+                                <span class="unit">/ 4</span>
+                            </div>
+                            <div class="metric-status" id="dashboard-occupancy">0% occupied</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card success">
+                        <div class="card-icon">💰</div>
+                        <div class="card-content">
+                            <h3>Cost Savings</h3>
+                            <div class="metric-value">
+                                <span>₹1,14,080</span>
+                            </div>
+                            <div class="metric-status positive">45% reduction</div>
+                        </div>
+                    </div>
+
+                    <div class="metric-card warning">
+                        <div class="card-icon">📊</div>
+                        <div class="card-content">
+                            <h3>Efficiency</h3>
+                            <div class="metric-value">
+                                <span id="dashboard-efficiency">100</span>
+                                <span class="unit">%</span>
+                            </div>
+                            <div class="metric-status" id="dashboard-efficiency-status">Optimal</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Charts -->
+                <div class="dashboard-charts">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Real-time Power Allocation</h3>
+                            <div class="chart-controls">
+                                <button class="chart-btn" onclick="powerSystem.simulateScenario('peak-load')">Peak Load
+                                    Test</button>
+                                <button class="chart-btn" onclick="powerSystem.simulateScenario('load-balancing')">Load
+                                    Balance Test</button>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="realTimePowerChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h3>Daily Usage Pattern</h3>
+                            <p class="chart-subtitle">24-hour occupancy trends</p>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="dailyUsageChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Power Control Section -->
+        <section id="control" class="tab-content">
+            <!-- Grid Status Panel -->
+            <div class="control-panel">
+                <div class="panel-card">
+                    <div class="panel-header">
+                        <h2>Grid Power Management</h2>
+                        <div class="panel-actions">
+                            <button class="btn btn-primary" id="request-power-btn" disabled>Request Additional
+                                Power</button>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <div class="grid-metrics">
+                            <div class="grid-metric">
+                                <label>Base Supply</label>
+                                <div class="power-display base">
+                                    <span>20</span> kW
+                                </div>
+                            </div>
+                            <div class="grid-metric">
+                                <label>Additional Supply</label>
+                                <div class="power-display additional">
+                                    <span id="additional-supply">0</span> kW
+                                </div>
+                            </div>
+                            <div class="grid-metric">
+                                <label>Total Available</label>
+                                <div class="power-display total">
+                                    <span id="total-supply">20</span> kW
+                                </div>
+                            </div>
+                            <div class="grid-metric">
+                                <label>Current Demand</label>
+                                <div class="power-display demand">
+                                    <span id="current-demand">0</span> kW
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="power-visualization">
+                            <div class="power-bar-container">
+                                <label>Grid Utilization</label>
+                                <div class="power-bar">
+                                    <div id="grid-utilization-bar" class="power-bar-fill"></div>
+                                </div>
+                                <div class="power-bar-labels">
+                                    <span>0 kW</span>
+                                    <span>40 kW</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charging Slots Grid -->
+            <div class="slots-section">
+                <div class="section-header">
+                    <h2>Charging Slots Management</h2>
+                    <div class="section-info">
+                        <span class="algorithm-status" id="algorithm-status">Equal Distribution Active</span>
+                        <button class="btn btn-outline btn-sm" id="sync-data-btn">Sync to Cloud</button>
+                    </div>
+                </div>
+
+                <div class="slots-grid">
+                    <div class="slot-card" data-slot-id="1">
+                        <div class="slot-header">
+                            <div class="slot-title">
+                                <h3>Slot 1</h3>
+                                <span class="slot-status" id="status-1">Available</span>
+                            </div>
+                            <div class="slot-indicator"></div>
+                        </div>
+                        <div class="slot-body">
+                            <div class="power-info">
+                                <div class="power-allocation">
+                                    <label>Power Output</label>
+                                    <div class="power-value">
+                                        <span id="power-1">0.0</span> kW
+                                    </div>
+                                </div>
+                                <div class="power-progress">
+                                    <div class="progress-bar">
+                                        <div id="progress-1" class="progress-fill"></div>
+                                    </div>
+                                    <span class="progress-label">0 / 10 kW</span>
+                                </div>
+                            </div>
+                            <div class="slot-controls">
+                                <button class="btn btn-slot" id="toggle-1">Connect EV</button>
+                            </div>
+                            <div class="ev-details" id="ev-details-1" style="display: none;">
+                                <div class="ev-info">
+                                    <div class="ev-id">
+                                        <label>Vehicle ID:</label>
+                                        <span id="ev-id-1">-</span>
+                                    </div>
+                                    <div class="charging-time">
+                                        <label>Session Time:</label>
+                                        <span id="charging-time-1">00:00</span>
+                                    </div>
+                                </div>
+                                <div class="billing-info">
+                                    <div class="billing-header">
+                                        <h4>Billing Information</h4>
+                                    </div>
+                                    <div class="billing-grid">
+                                        <div class="billing-item">
+                                            <label>Energy Consumed:</label>
+                                            <span id="energy-1">0.00 kWh</span>
+                                        </div>
+                                        <div class="billing-item">
+                                            <label>Dynamic Rate:</label>
+                                            <span id="dynamic-cost-1">₹0.00</span>
+                                        </div>
+                                        <div class="billing-item">
+                                            <label>Normal Rate:</label>
+                                            <span id="normal-cost-1">₹0.00</span>
+                                        </div>
+                                        <div class="billing-item savings">
+                                            <label>Savings:</label>
+                                            <span id="savings-1">₹0.00</span>
+                                        </div>
+                                        <div class="billing-item power-saved">
+                                            <label>Power Saved:</label>
+                                            <span id="power-saved-1">0.0 kW (0%)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="slot-card" data-slot-id="2">
+                        <div class="slot-header">
+                            <div class="slot-title">
+                                <h3>Slot 2</h3>
+                                <span class="slot-status" id="status-2">Available</span>
+                            </div>
+                            <div class="slot-indicator"></div>
+                        </div>
+                        <div class="slot-body">
+                            <div class="power-info">
+                                <div class="power-allocation">
+                                    <label>Power Output</label>
+                                    <div class="power-value">
+                                        <span id="power-2">0.0</span> kW
+                                    </div>
+                                </div>
+                                <div class="power-progress">
+                                    <div class="progress-bar">
+                                        <div id="progress-2" class="progress-fill"></div>
+                                    </div>
+                                    <span class="progress-label">0 / 10 kW</span>
+                                </div>
+                            </div>
+                            <div class="slot-controls">
+                                <button class="btn btn-slot" id="toggle-2">Connect EV</button>
+                            </div>
+                            <div class="ev-details" id="ev-details-2" style="display: none;">
+                                <div class="ev-info">
+                                    <div class="ev-id">
+                                        <label>Vehicle ID:</label>
+                                        <span id="ev-id-2">-</span>
+                                    </div>
+                                    <div class="charging-time">
+                                        <label>Session Time:</label>
+                                        <span id="charging-time-2">00:00</span>
+                                    </div>
+                                </div>
+                                <div class="billing-info">
+                                    <div class="billing-header">
+                                        <h4>Billing Information</h4>
+                                    </div>
+                                    <div class="billing-grid">
+                                        <div class="billing-item">
+                                            <label>Energy Consumed:</label>
+                                            <span id="energy-2">0.00 kWh</span>
+                                        </div>
+                                        <div class="billing-item">
+                                            <label>Dynamic Rate:</label>
+                                            <span id="dynamic-cost-2">₹0.00</span>
+                                        </div>
+                                        <div class="billing-item">
+                                            <label>Normal Rate:</label>
+                                            <span id="normal-cost-2">₹0.00</span>
+                                        </div>
+                                        <div class="billing-item savings">
+                                            <label>Savings:</label>
+                                            <span id="savings-2">₹0.00</span>
+                                        </div>
+                                        <div class="billing-item power-saved">
+                                            <label>Power Saved:</label>
+                                            <span id="power-saved-2">0.0 kW (0%)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="slot-card" data-slot-id="3">
+                        <div class="slot-header">
+                            <div class="slot-title">
+                                <h3>Slot 3</h3>
+                                <span class="slot-status" id="status-3">Available</span>
+                            </div>
+                            <div class="slot-indicator"></div>
+                        </div>
+                        <div class="slot-body">
+                            <div class="power-info">
+                                <div class="power-allocation">
+                                    <label>Power Output</label>
+                                    <div class="power-value">
+                                        <span id="power-3">0.0</span> kW
+                                    </div>
+                                </div>
+                                <div class="power-progress">
+                                    <div class="progress-bar">
+                                        <div id="progress-3" class="progress-fill"></div>
+                                    </div>
+                                    <span class="progress-label">0 / 10 kW</span>
+                                </div>
+                            </div>
+                            <div class="slot-controls">
+                                <button class="btn btn-slot" id="toggle-3">Connect EV</button>
+                            </div>
+                            <div class="ev-details" id="ev-details-3" style="display: none;">
+                                <div class="ev-info">
+                                    <div class="ev-id">
+                                        <label>Vehicle ID:</label>
+                                        <span id="ev-id-3">-</span>
+                                    </div>
+                                    <div class="charging-time">
+                                        <label>Session Time:</label>
+                                        <span id="charging-time-3">00:00</span>
+                                    </div>
+                                </div>
+                                <div class="billing-info">
+                                    <div class="billing-header">
+                                        <h4>Billing Information</h4>
+                                    </div>
+                                    <div class="billing-grid">
+                                        <div class="billing-item">
+                                            <label>Energy Consumed:</label>
+                                            <span id="energy-3">0.00 kWh</span>
+                                        </div>
+                                        <div class="billing-item">
+                                            <label>Dynamic Rate:</label>
+                                            <span id="dynamic-cost-3">₹0.00</span>
+                                        </div>
+                                        <div class="billing-item">
+                                            <label>Normal Rate:</label>
+                                            <span id="normal-cost-3">₹0.00</span>
+                                        </div>
+                                        <div class="billing-item savings">
+                                            <label>Savings:</label>
+                                            <span id="savings-3">₹0.00</span>
+                                        </div>
+                                        <div class="billing-item power-saved">
+                                            <label>Power Saved:</label>
+                                            <span id="power-saved-3">0.0 kW (0%)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="slot-card" data-slot-id="4">
+                        <div class="slot-header">
+                            <div class="slot-title">
+                                <h3>Slot 4</h3>
+                                <span class="slot-status" id="status-4">Available</span>
+                            </div>
+                            <div class="slot-indicator"></div>
+                        </div>
+                        <div class="slot-body">
+                            <div class="power-info">
+                                <div class="power-allocation">
+                                    <label>Power Output</label>
+                                    <div class="power-value">
+                                        <span id="power-4">0.0</span> kW
+                                    </div>
+                                </div>
+                                <div class="power-progress">
+                                    <div class="progress-bar">
+                                        <div id="progress-4" class="progress-fill"></div>
+                                    </div>
+                                    <span class="progress-label">0 / 10 kW</span>
+                                </div>
+                            </div>
+                            <div class="slot-controls">
+                                <button class="btn btn-slot" id="toggle-4">Connect EV</button>
+                            </div>
+                            <div class="ev-details" id="ev-details-4" style="display: none;">
+                                <div class="ev-info">
+                                    <div class="ev-id">
+                                        <label>Vehicle ID:</label>
+                                        <span id="ev-id-4">-</span>
+                                    </div>
+                                    <div class="charging-time">
+                                        <label>Session Time:</label>
+                                        <span id="charging-time-4">00:00</span>
+                                    </div>
+                                </div>
+                                <div class="billing-info">
+                                    <div class="billing-header">
+                                        <h4>Billing Information</h4>
+                                    </div>
+                                    <div class="billing-grid">
+                                        <div class="billing-item">
+                                            <label>Energy Consumed:</label>
+                                            <span id="energy-4">0.00 kWh</span>
+                                        </div>
+                                        <div class="billing-item">
+                                            <label>Dynamic Rate:</label>
+                                            <span id="dynamic-cost-4">₹0.00</span>
+                                        </div>
+                                        <div class="billing-item">
+                                            <label>Normal Rate:</label>
+                                            <span id="normal-cost-4">₹0.00</span>
+                                        </div>
+                                        <div class="billing-item savings">
+                                            <label>Savings:</label>
+                                            <span id="savings-4">₹0.00</span>
+                                        </div>
+                                        <div class="billing-item power-saved">
+                                            <label>Power Saved:</label>
+                                            <span id="power-saved-4">0.0 kW (0%)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics Section -->
+        <section id="analytics" class="tab-content">
+            <!-- Analytics Navigation -->
+            <div class="analytics-nav">
+                <button class="analytics-tab active" data-analytics="overview">Overview</button>
+                <button class="analytics-tab" data-analytics="cost">Cost Analysis</button>
+                <button class="analytics-tab" data-analytics="efficiency">Power Efficiency</button>
+                <button class="analytics-tab" data-analytics="predictive">Predictive</button>
+            </div>
+
+            <!-- Overview Analytics -->
+            <div id="overview" class="analytics-content active">
+                <div class="kpi-section">
+                    <div class="kpi-grid">
+                        <div class="kpi-card savings">
+                            <div class="kpi-icon">💰</div>
+                            <div class="kpi-content">
+                                <h3>Total Cost Savings</h3>
+                                <div class="kpi-value">₹1,14,080</div>
+                                <div class="kpi-change positive">↓ 45.0% reduction</div>
+                            </div>
+                        </div>
+                        <div class="kpi-card efficiency">
+                            <div class="kpi-icon">⚡</div>
+                            <div class="kpi-content">
+                                <h3>Power Reduction</h3>
+                                <div class="kpi-value">10,380 kWh</div>
+                                <div class="kpi-change positive">↓ 36.0% reduction</div>
+                            </div>
+                        </div>
+                        <div class="kpi-card dynamic">
+                            <div class="kpi-icon">🔋</div>
+                            <div class="kpi-content">
+                                <h3>Dynamic Efficiency</h3>
+                                <div class="kpi-value">83.8%</div>
+                                <div class="kpi-trend">Optimized performance</div>
+                            </div>
+                        </div>
+                        <div class="kpi-card static">
+                            <div class="kpi-icon">🏭</div>
+                            <div class="kpi-content">
+                                <h3>System Utilization</h3>
+                                <div class="kpi-value">67.3%</div>
+                                <div class="kpi-trend">Average daily usage</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Daily Usage Pattern</h3>
+                            <p class="chart-description">24-hour occupancy and power trends</p>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="dailyPatternChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Efficiency Comparison</h3>
+                            <p class="chart-description">Dynamic vs Static performance</p>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="efficiencyComparisonChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost Analysis -->
+            <div id="cost" class="analytics-content">
+                <div class="cost-summary">
+                    <div class="summary-metrics">
+                        <div class="metric-row">
+                            <span class="metric-label">Total Dynamic Cost</span>
+                            <span class="metric-value dynamic-color">₹1,39,360</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Total Static Cost</span>
+                            <span class="metric-value static-color">₹2,53,440</span>
+                        </div>
+                        <div class="metric-row highlight">
+                            <span class="metric-label">Monthly Savings</span>
+                            <span class="metric-value savings-color">₹1,14,080</span>
+                        </div>
+                        <div class="metric-row">
+                            <span class="metric-label">Annual Projection</span>
+                            <span class="metric-value savings-color">₹13,68,960</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Daily Cost Comparison</h3>
+                            <p class="chart-description">Cost trends over 30-day period</p>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="costChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Cost Savings Breakdown</h3>
+                            <p class="chart-description">Sources of savings</p>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="savingsBreakdownChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Power Efficiency -->
+            <div id="efficiency" class="analytics-content">
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Power Consumption Trends</h3>
+                            <p class="chart-description">Energy usage comparison (kWh)</p>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="powerChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Efficiency Trends</h3>
+                            <p class="chart-description">System efficiency over time (%)</p>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="efficiencyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictive Analytics -->
+            <div id="predictive" class="analytics-content">
+                <div class="prediction-summary">
+                    <h3>6-Month Projections</h3>
+                    <div class="projection-metrics">
+                        <div class="projection-item">
+                            <span class="projection-label">Projected Savings</span>
+                            <span class="projection-value">₹8,21,360</span>
+                        </div>
+                        <div class="projection-item">
+                            <span class="projection-label">ROI</span>
+                            <span class="projection-value">540%</span>
+                        </div>
+                        <div class="projection-item">
+                            <span class="projection-label">Payback Period</span>
+                            <span class="projection-value">2.2 months</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Forecast Analysis</h3>
+                            <p class="chart-description">Predicted performance trends</p>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="forecastChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-header">
+                            <h3>Optimization Recommendations</h3>
+                            <p class="chart-description">AI-driven suggestions</p>
+                        </div>
+                        <div class="recommendations-panel">
+                            <div class="recommendation-item">
+                                <div class="rec-icon">🎯</div>
+                                <div class="rec-content">
+                                    <h4>Peak Hour Optimization</h4>
+                                    <p>Implement load balancing during 11:00-13:00 for 12% efficiency gain</p>
+                                </div>
+                            </div>
+                            <div class="recommendation-item">
+                                <div class="rec-icon">💡</div>
+                                <div class="rec-content">
+                                    <h4>Smart Scheduling</h4>
+                                    <p>Enable predictive charging to reduce wait times by 23%</p>
+                                </div>
+                            </div>
+                            <div class="recommendation-item">
+                                <div class="rec-icon">⚡</div>
+                                <div class="rec-content">
+                                    <h4>Grid Integration</h4>
+                                    <p>Connect to renewable sources for 18% cost reduction</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Section -->
+        <section id="reports" class="tab-content">
+            <div class="reports-header">
+                <h2>System Reports</h2>
+                <div class="report-actions">
+                    <button class="btn btn-outline" onclick="window.print()">Print Report</button>
+                    <button class="btn btn-primary" onclick="powerSystem.exportData()">Export Data</button>
+                </div>
+            </div>
+
+            <div class="reports-grid">
+                <div class="report-card">
+                    <div class="report-header">
+                        <h3>Performance Summary</h3>
+                        <span class="report-date">Last 30 Days</span>
+                    </div>
+                    <div class="report-metrics">
+                        <div class="report-metric">
+                            <label>Total Sessions</label>
+                            <span class="value">1,247</span>
+                        </div>
+                        <div class="report-metric">
+                            <label>Energy Delivered</label>
+                            <span class="value">15,380 kWh</span>
+                        </div>
+                        <div class="report-metric">
+                            <label>Average Session</label>
+                            <span class="value">2.3 hours</span>
+                        </div>
+                        <div class="report-metric">
+                            <label>Peak Utilization</label>
+                            <span class="value">95%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="report-card">
+                    <div class="report-header">
+                        <h3>Financial Impact</h3>
+                        <span class="report-date">Monthly Analysis</span>
+                    </div>
+                    <div class="report-metrics">
+                        <div class="report-metric">
+                            <label>Revenue Generated</label>
+                            <span class="value">₹3,69,120</span>
+                        </div>
+                        <div class="report-metric">
+                            <label>Operating Costs</label>
+                            <span class="value">₹1,39,360</span>
+                        </div>
+                        <div class="report-metric">
+                            <label>Net Profit</label>
+                            <span class="value">₹2,29,760</span>
+                        </div>
+                        <div class="report-metric">
+                            <label>Cost Savings</label>
+                            <span class="value positive">₹1,14,080</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="main-footer">
+            <div class="footer-content">
+                <div class="footer-left">
+                    <p>&copy; 2024 EVISION. Dynamic Power Management System.</p>
+                </div>
+                <div class="footer-right">
+                    <span>Last updated: <span id="footer-time">--:--:--</span></span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

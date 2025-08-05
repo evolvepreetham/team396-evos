@@ -1,0 +1,12 @@
+{
+  "total_cost_savings": "$1,426",
+  "savings_percentage": "45.0%",
+  "power_reduction": "10,380 kWh",
+  "power_reduction_pct": "36.0%",
+  "avg_dynamic_efficiency": "83.8%",
+  "avg_static_efficiency": "53.6%",
+  "total_dynamic_cost": "$1,742",
+  "total_static_cost": "$3,168",
+  "dynamic_power_total": "18,420 kWh",
+  "static_power_total": "28,800 kWh"
+}

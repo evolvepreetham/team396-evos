@@ -1,0 +1,44 @@
+{
+  "name": "evision-ev-management",
+  "version": "1.0.0",
+  "description": "Professional EV Charging Power Management & Analytics Platform",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "serve": "npx http-server -p 8080 -o",
+    "dev": "live-server --port=3000"
+  },
+  "keywords": [
+    "ev-charging",
+    "power-management",
+    "analytics",
+    "firebase",
+    "real-time",
+    "dashboard",
+    "billing",
+    "load-balancing"
+  ],
+  "author": "EVISION Development Team",
+  "license": "MIT",
+  "dependencies": {
+    "chart.js": "^4.4.0",
+    "firebase": "^10.7.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "your-repository-url"
+  },
+  "homepage": "your-homepage-url",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
